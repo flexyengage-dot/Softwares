@@ -1,0 +1,23 @@
+{
+  "provider": "mock",
+  "mode": "test",
+  "asset": "USDT",
+  "usd_ngn_rate": 1500,
+  "walletpay": {
+    "store_api_key": "",
+    "customer_telegram_user_id": ""
+  },
+  "ton": {
+    "api_key": "",
+    "deposit_address": "",
+    "hot_wallet_address": "",
+    "hot_wallet_mnemonic": "",
+    "network": "mainnet"
+  },
+  "withdrawal": {
+    "wallet_address": "",
+    "min_withdrawal": 500,
+    "daily_withdrawal_limit": 50000,
+    "auto_withdraw": false
+  }
+}

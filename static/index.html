@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Arena Sports Bot — Auto Trading Console</title>
+<style>
+  :root{
+    --bg:#0b0f17; --panel:#121826; --panel2:#0f1420; --border:#1f2937;
+    --text:#e6eaf2; --muted:#8b94a7; --accent:#22c55e; --accent2:#3b82f6;
+    --red:#ef4444; --amber:#f59e0b; --up:#22c55e; --down:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;line-height:1.5}
+  a{color:var(--accent2)}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 20px 60px}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#16a34a);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+  .title{font-size:20px;font-weight:700}
+  .subtitle{color:var(--muted);font-size:12px}
+  .spacer{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;
+    font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--panel)}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .dot.green{background:var(--up);box-shadow:0 0 8px var(--up)}
+  .dot.red{background:var(--red)}
+  .dot.amber{background:var(--amber)}
+  .banner{background:#1a1206;border:1px solid #3a2b0a;color:#f5d18a;padding:10px 14px;
+    border-radius:10px;font-size:12.5px;margin-bottom:16px}
+  .grid{display:grid;gap:14px}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+  .card .k{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+  .card .v{font-size:24px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+  .card .s{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .pos{color:var(--up)} .neg{color:var(--down)}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .panel h3{margin:0;padding:14px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:8px}
+  .panel h3 .hint{margin-left:auto;font-weight:400;color:var(--muted);font-size:11px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:9px 12px;text-align:right;white-space:nowrap}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.03em;
+    border-bottom:1px solid var(--border);background:var(--panel2)}
+  th:first-child,td:first-child{text-align:left}
+  td{border-bottom:1px solid #161d2b}
+  tr:last-child td{border-bottom:none}
+  .name{font-weight:600;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chip{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--panel2);
+    border:1px solid var(--border)}
+  .tag-OPEN{color:#7dd3fc} .tag-ADD{color:#a5b4fc} .tag-EXIT{color:#fca5a5} .tag-SETTLE{color:#fcd34d}
+  .bar{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;min-width:70px}
+  .bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+  button{cursor:pointer;border:1px solid var(--border);background:var(--panel2);color:var(--text);
+    padding:7px 14px;border-radius:9px;font-weight:600;font-size:13px;transition:.15s}
+  button:hover{border-color:#334155}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#04210f}
+  button.primary:hover{background:#16a34a}
+  button.danger{color:var(--red)}
+  button.warn{color:var(--amber)}
+  input,select{background:var(--panel2);border:1px solid var(--border);color:var(--text);
+    padding:7px 10px;border-radius:9px;font-size:13px;width:100%}
+  input:focus{outline:none;border-color:var(--accent2)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:16px}
+  .field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;
+    letter-spacing:.03em}
+  .chartwrap{padding:14px 16px}
+  canvas{width:100%;height:220px;display:block}
+  .twocol{grid-template-columns:1fr 1fr}
+  .footer{color:var(--muted);font-size:11.5px;margin-top:22px;text-align:center}
+  .empty{color:var(--muted);padding:26px;text-align:center;font-size:13px}
+  @media(max-width:760px){.twocol{grid-template-columns:1fr}}
+  .muted{color:var(--muted)}
+  .mono{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="banner">
+    ⚠️ <b>Paper-trading / simulation mode.</b> This console runs a risk-managed strategy on a
+    <b>simulated market feed</b>. It does not connect to any bookmaker, does not move real money, and
+    <b>cannot guarantee profits</b>. "Deposits" only model funding a wallet so you can rehearse a plan
+    before risking real capital. Sports outcomes are unpredictable.
+  </div>
+
+  <header>
+    <div class="logo">AS</div>
+    <div>
+      <div class="title">Arena Sports Bot</div>
+      <div class="subtitle">Automated sports trading console · <span id="cur">NGN</span> · tick <span id="tick">0</span></div>
+    </div>
+    <div class="spacer"></div>
+    <a class="pill" href="/ArenaSportsBot.zip" download style="text-decoration:none;color:var(--text)">⬇ Download project (.zip)</a>
+    <span class="pill"><span class="dot" id="status-dot"></span><span id="status-txt">…</span></span>
+    <button id="btn-start" class="primary">▶ Start</button>
+    <button id="btn-stop">⏸ Stop</button>
+    <button id="btn-reset" class="warn">↺ Reset</button>
+  </header>
+
+  <div class="grid cards">
+    <div class="card"><div class="k">Bankroll (cash)</div><div class="v mono" id="balance">₦0</div><div class="s">available to stake</div></div>
+    <div class="card"><div class="k">Total equity</div><div class="v mono" id="equity">₦0</div><div class="s">cash + open P&amp;L</div></div>
+    <div class="card"><div class="k">Realized P&amp;L</div><div class="v mono" id="pnl">₦0</div><div class="s" id="pnl-note">—</div></div>
+    <div class="card"><div class="k">Open positions</div><div class="v mono" id="open-n">0</div><div class="s">scaled lots</div></div>
+    <div class="card"><div class="k">Win rate</div><div class="v mono" id="winrate">—</div><div class="s" id="winrate-s">closed trades</div></div>
+    <div class="card"><div class="k">Total deposits</div><div class="v mono" id="deposits">₦0</div><div class="s">simulated top-ups</div></div>
+  </div>
+
+  <div class="grid twocol" style="margin-top:14px">
+    <div class="panel">
+      <h3>Equity curve <span class="hint">cash + unrealized</span></h3>
+      <div class="chartwrap"><canvas id="chart"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Wallet — fund / top up <span class="hint">simulated</span></h3>
+      <div class="formgrid">
+        <div class="field"><label>Current bankroll (paper)</label><input id="bal-display" value="₦3000" disabled /></div>
+        <div class="field"><label>Deposit amount (₦)</label><input id="deposit-amt" type="number" min="0" step="100" placeholder="e.g. 5000" /></div>
+        <div class="field"><label>Wallet</label>
+          <select id="deposit-target">
+            <option value="paper">Paper</option>
+            <option value="live">Live (real)</option>
+            <option value="both">Both</option>
+          </select>
+        </div>
+        <div class="field" style="align-self:end"><button class="primary" id="btn-deposit" style="width:100%">Deposit</button></div>
+      </div>
+      <div class="formgrid">
+        <div class="field" style="grid-column:1/-1"><label>Set starting bankroll (₦) — resets the wallet</label>
+          <div class="row">
+            <input id="startbal" type="number" min="0" step="100" placeholder="3000" />
+            <button id="btn-setbal">Apply</button>
+          </div>
+        </div>
+      </div>
+      <div class="formgrid">
+        <div class="field" style="grid-column:1/-1">
+          <label>Trade capital (₦) — how much the bot may trade</label>
+          <div class="row">
+            <input id="trade-capital" type="number" min="0" step="100" placeholder="0 = full balance" />
+            <button class="primary" id="btn-set-capital">Allocate</button>
+            <button id="btn-capital-full">Use full balance</button>
+          </div>
+          <div class="s" style="margin-top:6px" id="capital-hint">
+            You allocate this manually. Anything above it stays <b>reserved</b> and is never touched by the strategy.
+          </div>
+        </div>
+      </div>
+      <p class="muted" style="padding:0 16px 16px;font-size:12px;margin:0">
+        Tip: when you fund your real account later, come here and record the top-up so the simulator
+        tracks your true bankroll.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid twocol" style="margin-top:14px">
+    <div class="panel">
+      <h3>Paper wallet <span class="hint">ideal execution</span></h3>
+      <div class="cards" style="padding:14px;gap:10px">
+        <div class="card"><div class="k">Equity</div><div class="v mono" id="p-equity">₦0</div></div>
+        <div class="card"><div class="k">Realized P&amp;L</div><div class="v mono" id="p-pnl">₦0</div></div>
+        <div class="card"><div class="k">Deposits</div><div class="v mono" id="p-dep">₦0</div></div>
+        <div class="card"><div class="k">Trade capital</div><div class="v mono" id="p-capital" style="font-size:20px">₦0</div><div class="s" id="p-capital-s">full balance</div></div>
+        <div class="card"><div class="k">Reserved (untouched)</div><div class="v mono" id="p-reserved" style="font-size:20px">₦0</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Live (real) wallet <span class="hint" id="live-mode-hint">shadow — broker NOT connected</span></h3>
+      <div class="cards" style="padding:14px;gap:10px">
+        <div class="card"><div class="k">Equity</div><div class="v mono" id="l-equity">—</div></div>
+        <div class="card"><div class="k">Realized P&amp;L</div><div class="v mono" id="l-pnl">—</div></div>
+        <div class="card"><div class="k">Deposits</div><div class="v mono" id="l-dep">—</div></div>
+      </div>
+      <p class="muted" style="padding:0 16px 14px;font-size:12px;margin:0">
+        The live ledger mirrors the same signals but with realistic <b>slippage + commission</b>, so you
+        can compare "ideal paper" vs "real-world" results side by side before risking anything.
+      </p>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Open positions <span class="hint">pull out / scale in happens automatically</span></h3>
+    <div id="positions-wrap"></div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Live market feed <span class="hint">signal = momentum in probability points</span></h3>
+    <div id="markets-wrap"></div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Trade history <span class="hint">last 100 actions</span></h3>
+    <div id="trades-wrap"></div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Strategy &amp; risk settings <span class="hint">apply live</span></h3>
+    <div class="formgrid" id="settings-grid"></div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Backtest <span class="hint">run the strategy across many simulated histories</span></h3>
+    <div class="formgrid">
+      <div class="field"><label>Runs</label><input id="bt-runs" type="number" min="5" max="200" value="50" /></div>
+      <div class="field"><label>Ticks per run</label><input id="bt-ticks" type="number" min="100" max="5000" value="500" /></div>
+      <div class="field" style="align-self:end"><button class="primary" id="btn-backtest" style="width:100%">Run backtest</button></div>
+    </div>
+    <div id="bt-status" style="padding:0 16px 14px" class="muted">No backtest run yet.</div>
+    <div id="bt-result" style="padding:0 16px 16px"></div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Daily scheduled backtest <span class="hint">re-checks the strategy every day</span></h3>
+    <div class="formgrid">
+      <div class="field" style="align-self:end">
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0">
+          <input type="checkbox" id="sched-enabled" style="width:auto" /> Enabled
+        </label>
+      </div>
+      <div class="field"><label>Time (server local)</label>
+        <div class="row">
+          <input id="sched-hour" type="number" min="0" max="23" value="8" style="width:70px" /> :
+          <input id="sched-minute" type="number" min="0" max="59" value="0" style="width:70px" />
+        </div>
+      </div>
+      <div class="field"><label>Runs</label><input id="sched-runs" type="number" min="5" max="200" value="50" /></div>
+      <div class="field"><label>Ticks per run</label><input id="sched-ticks" type="number" min="100" max="5000" value="600" /></div>
+      <div class="field" style="align-self:end"><button class="primary" id="btn-sched-save" style="width:100%">Save schedule</button></div>
+    </div>
+    <div class="row" style="padding:0 16px 6px">
+      <button id="btn-sched-run">Run now</button>
+    </div>
+    <div id="sched-status" style="padding:0 16px 16px" class="muted">Schedule not configured.</div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Alerts <span class="hint">email · telegram · webhook · log</span></h3>
+    <div id="alerts-status" style="padding:14px 16px 4px"></div>
+    <div class="formgrid" id="alerts-grid"></div>
+    <div style="padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="primary" id="btn-alerts-save">Save alert config</button>
+      <button id="btn-alerts-test">Send test alert</button>
+    </div>
+    <div class="formgrid" style="grid-template-columns:1fr">
+      <div class="field" style="padding:0 16px 16px"><label>Recent alert log</label>
+        <pre id="alerts-log" style="margin:0;background:#0f1420;border:1px solid var(--border);border-radius:9px;
+          padding:10px;max-height:180px;overflow:auto;font-size:11.5px;color:#aab3c5;white-space:pre-wrap">—</pre>
+      </div>
+    </div>
+    <div class="formgrid" style="grid-template-columns:1fr">
+      <div class="field" style="padding:0 16px 16px">
+        <label>Telegram commands <span id="tg-cmd-status"></span></label>
+        <p class="muted" style="margin:0;font-size:12px">
+          Once Telegram is configured (token + chat id), message your bot from your phone:
+          <b>/status</b> · <b>/summary</b> · <b>/positions</b> · <b>/run</b> · <b>/help</b>.
+          If no chat id is set yet, the first person to message the bot becomes the owner.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Payments — deposit &amp; withdraw <span class="hint" id="pay-mode-hint">TEST MODE</span></h3>
+    <div class="banner" style="margin:14px 16px 6px" id="pay-banner">
+      ⚠️ <b>TEST / simulation mode.</b> Deposits and withdrawals only touch the simulated wallet —
+      no real money moves. To move real money you must connect your own licensed payment
+      processor (e.g. Paystack) with your verified account and API keys.
+    </div>
+    <div class="formgrid">
+      <div class="field"><label>Provider</label>
+        <select id="pay-provider">
+          <option value="mock">Mock (simulate locally)</option>
+          <option value="paystack">Paystack</option>
+          <option value="off">Off</option>
+        </select>
+      </div>
+      <div class="field"><label>Mode</label>
+        <select id="pay-mode">
+          <option value="test">Test</option>
+          <option value="live">Live</option>
+        </select>
+      </div>
+      <div class="field"><label>Paystack secret key</label><input id="pay-secret" type="password" placeholder="sk_test_… / sk_live_…" /></div>
+      <div class="field"><label>Paystack public key</label><input id="pay-public" type="password" placeholder="pk_test_… / pk_live_…" /></div>
+      <div class="field" style="align-self:end"><button class="primary" id="btn-pay-save" style="width:100%">Save payment config</button></div>
+    </div>
+
+    <div class="grid twocol" style="padding:0 16px 16px">
+      <div>
+        <div class="card" style="margin-top:10px">
+          <div class="k">Deposit (fund the bot)</div>
+          <div class="row" style="margin-top:8px">
+            <input id="dep-amount" type="number" min="1" step="100" placeholder="Amount (₦)" />
+            <input id="dep-email" type="email" placeholder="Your email" />
+            <button class="primary" id="btn-deposit">Deposit</button>
+          </div>
+          <div class="s" style="margin-top:8px">In mock mode this instantly credits the wallet. With Paystack you'll be redirected to their secure checkout.</div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-top:10px">
+          <div class="k">Withdraw to your bank account</div>
+          <div class="formgrid" style="padding:0;margin-top:8px">
+            <div class="field"><label>Amount (₦)</label><input id="wd-amount" type="number" min="1" step="100" placeholder="Amount" /></div>
+            <div class="field"><label>Account name</label><input id="wd-name" placeholder="Your name" /></div>
+            <div class="field"><label>Account number</label><input id="wd-number" placeholder="0123456789" /></div>
+            <div class="field"><label>Bank code</label><input id="wd-bank" placeholder="e.g. 058 (GTB)" /></div>
+            <div class="field" style="align-self:end"><button class="primary" id="btn-withdraw" style="width:100%">Withdraw</button></div>
+          </div>
+          <div class="s" style="margin-top:8px">Withdrawals are <b>manual and recorded</b>, with a minimum amount and a daily limit. There is no instant auto-payout — that only happens through your verified processor account.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="formgrid" style="grid-template-columns:1fr">
+      <div class="field" style="padding:0 16px 16px">
+        <label>Payment activity</label>
+        <pre id="pay-history" style="margin:0;background:#0f1420;border:1px solid var(--border);border-radius:9px;
+          padding:10px;max-height:160px;overflow:auto;font-size:11.5px;color:#aab3c5;white-space:pre-wrap">—</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Crypto wallet — Trust Wallet / Telegram Wallet <span class="hint" id="crypto-mode-hint">TEST MODE</span></h3>
+    <div class="banner" style="margin:14px 16px 6px" id="crypto-banner">
+      ⚠️ <b>TEST / simulation mode.</b> No real crypto moves. To go live you need your own
+      Telegram Wallet Pay store key, or a TON deposit address + hot wallet.
+    </div>
+    <div class="formgrid">
+      <div class="field"><label>Provider</label>
+        <select id="crypto-provider">
+          <option value="mock">Mock (simulate locally)</option>
+          <option value="walletpay">Telegram Wallet Pay</option>
+          <option value="ton">TON address (Trust Wallet)</option>
+          <option value="off">Off</option>
+        </select>
+      </div>
+      <div class="field"><label>Mode</label>
+        <select id="crypto-mode">
+          <option value="test">Test</option>
+          <option value="live">Live</option>
+        </select>
+      </div>
+      <div class="field"><label>Asset</label>
+        <select id="crypto-asset">
+          <option value="USDT">USDT (stablecoin)</option>
+          <option value="TON">TON</option>
+        </select>
+      </div>
+      <div class="field"><label>USD → ₦ rate</label><input id="crypto-rate" type="number" step="any" value="1500" /></div>
+      <div class="field"><label>Wallet Pay store key</label><input id="crypto-wp-key" type="password" placeholder="Store API key" /></div>
+      <div class="field"><label>TON deposit address</label><input id="crypto-dep-addr" placeholder="Where you send crypto IN" /></div>
+      <div class="field"><label>TON hot wallet address</label><input id="crypto-hot-addr" placeholder="Where withdrawals come FROM" /></div>
+      <div class="field"><label>Your payout (Trust Wallet) address</label><input id="crypto-payout-addr" placeholder="Where withdrawals GO" /></div>
+      <div class="field" style="align-self:end"><button class="primary" id="btn-crypto-save" style="width:100%">Save crypto config</button></div>
+    </div>
+
+    <div class="grid twocol" style="padding:0 16px 16px">
+      <div>
+        <div class="card" style="margin-top:10px">
+          <div class="k">Deposit (top up from your wallet)</div>
+          <div class="row" style="margin-top:8px">
+            <input id="crypto-dep-amount" type="number" min="1" step="100" placeholder="Amount (₦)" />
+            <button class="primary" id="btn-crypto-deposit">Deposit</button>
+          </div>
+          <div class="s" style="margin-top:8px" id="crypto-dep-result">In mock mode this instantly credits the wallet. With Wallet Pay you pay inside Telegram; with TON you send to the deposit address.</div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-top:10px">
+          <div class="k">Withdraw to your wallet</div>
+          <div class="row" style="margin-top:8px">
+            <input id="crypto-wd-amount" type="number" min="1" step="100" placeholder="Amount (₦)" />
+            <button class="primary" id="btn-crypto-withdraw">Withdraw</button>
+          </div>
+          <div class="s" style="margin-top:8px">You must authorize every withdrawal — there is no silent auto-pull. Real payouts require your own hot wallet keys.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="formgrid" style="grid-template-columns:1fr">
+      <div class="field" style="padding:0 16px 16px">
+        <label>Crypto activity</label>
+        <pre id="crypto-history" style="margin:0;background:#0f1420;border:1px solid var(--border);border-radius:9px;
+          padding:10px;max-height:160px;overflow:auto;font-size:11.5px;color:#aab3c5;white-space:pre-wrap">—</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Trading platforms &amp; broker connections <span class="hint">store credentials · verify connectivity</span></h3>
+    <div class="banner" style="margin:14px 16px 6px" id="broker-banner">
+      ⚠️ <b>Connectivity only.</b> You can store your broker/exchange credentials here and
+      <b>verify</b> the connection (read-only) — but auto-trading is <b>not wired</b> and will not place
+      any order. Nigerian bookmakers (Bet9ja, SportyBet, Betway…) have <b>no API</b>, so they cannot be linked.
+    </div>
+    <div id="brokers-grid" style="padding:0 16px 6px"></div>
+    <div style="padding:0 16px 6px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="primary" id="btn-brokers-save">Save all connections</button>
+    </div>
+    <div id="live-positions-wrap" style="padding:0 16px 10px"></div>
+    <div class="formgrid" style="grid-template-columns:1fr">
+      <div class="field" style="padding:0 16px 16px">
+        <label>Connection test results</label>
+        <pre id="broker-results" style="margin:0;background:#0f1420;border:1px solid var(--border);border-radius:9px;
+          padding:10px;max-height:180px;overflow:auto;font-size:11.5px;color:#aab3c5;white-space:pre-wrap">—</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Sports markets <span class="hint">live data from Polymarket / Betfair</span></h3>
+    <div class="formgrid">
+      <div class="field"><label>Source</label>
+        <select id="sports-src">
+          <option value="polymarket">Polymarket (prediction market)</option>
+          <option value="betfair">Betfair (needs login)</option>
+        </select>
+      </div>
+      <div class="field"><label>Query (Betfair)</label><input id="sports-query" placeholder="e.g. football" value="football" /></div>
+      <div class="field" style="align-self:end"><button class="primary" id="btn-sports-load" style="width:100%">Load markets</button></div>
+    </div>
+    <div id="sports-wrap" style="padding:0 16px 16px"></div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <h3>Decision desk — you decide every trade <span class="hint">the bot calculates, you approve</span></h3>
+    <div class="banner" style="margin:14px 16px 6px">
+      🧭 The bot <b>calculates</b> each opportunity (probability, confidence, expected value) and shows it to
+      you. <b>Nothing is placed until you approve it.</b> It will only auto-place a real order on approval when the
+      expectation is <b>positive</b> and a broker is wired — and never with real money unless you set it to
+      live with your own keys.
+    </div>
+    <div id="decisions-wrap" style="padding:0 16px 16px"></div>
+  </div>
+
+  <div class="footer">
+    Arena Sports Bot · engine ticks every <span id="tick-sec">2</span>s on a simulated feed ·
+    strategy: momentum entry → scale in → pull out / stop / target · nothing here is financial advice.
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const fmt = n => "₦" + Number(n||0).toLocaleString("en-NG", {maximumFractionDigits:2, minimumFractionDigits:2});
+const sign = n => (n>0 ? "+" : "") + Number(n||0).toLocaleString("en-NG",{maximumFractionDigits:2,minimumFractionDigits:2});
+
+let state = null;
+let SETTING_FIELDS = [
+  ["max_stake_pct","Stake % per lot","0.02","e.g. 0.02 = 2% of bankroll"],
+  ["max_adds","Max scale-in lots","2","extra adds per position"],
+  ["max_open_positions","Max open positions","3","cap concurrent positions"],
+  ["stop_loss_pct","Stop-loss (x stake)","0.60","pull out at -60% of a stake"],
+  ["take_profit_pct","Take-profit (x stake)","0.25","small win target +25%"],
+  ["max_daily_loss_pct","Daily loss limit","0.10","halt bot at -10% of bankroll"],
+  ["entry_signal","Entry signal","0.02","momentum points to open"],
+  ["add_signal","Add signal","0.045","momentum points to scale in"],
+  ["exit_signal","Exit signal","0.0","momentum at/below -> pull out"],
+  ["ema_slow","Slow EMA (ticks)","15","trend window"],
+  ["tick_seconds","Tick interval (s)","2","engine speed"],
+  ["live_slippage","Live slippage (x1)","0.01","odds degradation on real fills"],
+  ["live_commission_pct","Live commission","0.05","exchange fee on winnings (5%)"],
+];
+
+function buildSettings(){
+  const g = $("#settings-grid");
+  g.innerHTML = "";
+  SETTING_FIELDS.forEach(([key,label,def,hint]) => {
+    const val = state ? state.settings[key] : def;
+    const d = document.createElement("div");
+    d.className = "field";
+    d.innerHTML = `<label title="${hint}">${label}</label>
+      <input type="number" step="any" data-key="${key}" value="${val}" />`;
+    g.appendChild(d);
+  });
+  // live mode select
+  const lm = document.createElement("div");
+  lm.className = "field";
+  const mode = state ? state.settings.live_mode : "shadow";
+  lm.innerHTML = `<label>Live (real) ledger</label>
+    <select data-key="live_mode">
+      <option value="shadow" ${mode==='shadow'?'selected':''}>Shadow (mirror w/ fees)</option>
+      <option value="off" ${mode==='off'?'selected':''}>Off</option>
+    </select>`;
+  g.appendChild(lm);
+  const d = document.createElement("div");
+  d.className = "field";
+  d.style.alignSelf = "end";
+  d.innerHTML = `<button class="primary" id="btn-save-settings" style="width:100%">Save settings</button>`;
+  g.appendChild(d);
+  $("#btn-save-settings").onclick = saveSettings;
+}
+
+async function saveSettings(){
+  const patch = {};
+  document.querySelectorAll("#settings-grid input[data-key]").forEach(i => {
+    patch[i.dataset.key] = parseFloat(i.value);
+  });
+  const lm = document.querySelector("#settings-grid select[data-key='live_mode']");
+  if(lm) patch.live_mode = lm.value;
+  await post("/api/settings", patch);
+  toast("Settings saved");
+}
+
+async function refresh(){
+  try{
+    const r = await fetch("/api/state");
+    state = await r.json();
+    render();
+  }catch(e){ /* server not up yet */ }
+}
+
+function render(){
+  if(!state) return;
+  const a = state.account;
+  $("#cur").textContent = state.currency;
+  $("#tick").textContent = state.tick;
+  $("#tick-sec").textContent = state.settings.tick_seconds;
+
+  // status pill
+  const dot = $("#status-dot"), txt = $("#status-txt");
+  if(a.halted){ dot.className="dot amber"; txt.textContent="HALTED — daily limit"; }
+  else if(state.running){ dot.className="dot green"; txt.textContent="TRADING"; }
+  else { dot.className="dot red"; txt.textContent="STOPPED"; }
+  $("#btn-start").disabled = state.running;
+  $("#btn-stop").disabled = !state.running;
+
+  // cards
+  $("#balance").textContent = fmt(a.balance);
+  $("#equity").textContent = fmt(state.equity);
+  const pnlEl = $("#pnl");
+  pnlEl.textContent = sign(a.realized_pnl);
+  pnlEl.className = "v mono " + (a.realized_pnl>=0 ? "pos":"neg");
+  $("#pnl-note").textContent = a.realized_pnl>=0 ? "in profit":"in drawdown";
+  $("#open-n").textContent = state.positions.length;
+  $("#winrate").textContent = (state.stats.win_rate*100).toFixed(0)+"%";
+  $("#winrate-s").textContent = state.stats.closed + " closed · " + state.stats.trades + " actions";
+  $("#deposits").textContent = fmt(a.deposits);
+  $("#bal-display").value = fmt(a.balance);
+
+  // live (real) wallet
+  const live = state.live || {};
+  if(live.account){
+    $("#l-equity").textContent = fmt(live.equity);
+    const lp = $("#l-pnl");
+    lp.textContent = sign(live.account.realized_pnl);
+    lp.className = "v mono " + (live.account.realized_pnl>=0 ? "pos":"neg");
+    $("#l-dep").textContent = fmt(live.account.deposits);
+    $("#live-mode-hint").textContent = live.connected ? "connected" : "shadow — broker NOT connected";
+  } else {
+    $("#l-equity").textContent = "—"; $("#l-pnl").textContent = "—"; $("#l-dep").textContent = "—";
+    $("#live-mode-hint").textContent = "disabled";
+  }
+  $("#p-equity").textContent = fmt(state.equity);
+  const pp = $("#p-pnl");
+  pp.textContent = sign(a.realized_pnl);
+  pp.className = "v mono " + (a.realized_pnl>=0 ? "pos":"neg");
+  $("#p-dep").textContent = fmt(a.deposits);
+
+  // trade capital
+  const cap = state.capital || {};
+  const allocated = cap.allocated || 0;
+  $("#p-capital").textContent = fmt(cap.effective);
+  $("#p-capital-s").textContent = allocated > 0 ? "allocated " + fmt(allocated) : "full balance";
+  $("#p-reserved").textContent = fmt(cap.reserved || 0);
+  const th = $("#trade-capital");
+  if(th && document.activeElement !== th) th.value = allocated > 0 ? allocated : "";
+  const ch = $("#capital-hint");
+  if(allocated > 0){
+    ch.innerHTML = `Bot trades with <b>${fmt(cap.effective)}</b> · in play <b>${fmt(cap.in_play)}</b> · available <b>${fmt(cap.available)}</b> · reserved (untouched) <b>${fmt(cap.reserved)}</b>.`;
+  } else {
+    ch.innerHTML = "Full balance is available to the bot. Enter an amount to <b>reserve</b> part of it.";
+  }
+
+  drawChart();
+  renderPositions();
+  renderMarkets();
+  renderTrades();
+  renderAlertsStatus(state.alerts);
+  renderDecisions();
+}
+
+function renderPositions(){
+  const w = $("#positions-wrap");
+  if(!state.positions.length){
+    w.innerHTML = `<div class="empty">No open positions — the bot opens a position when a market's momentum
+      crosses the entry signal.</div>`;
+    return;
+  }
+  let h = `<table><thead><tr><th>Market</th><th>Lots</th><th>Avg back odds</th><th>Staked</th>
+    <th>Live lay odds</th><th>Unrealized P&amp;L</th><th>Action</th></tr></thead><tbody>`;
+  state.positions.forEach(p => {
+    const pos = p.unrealized >= 0;
+    h += `<tr>
+      <td class="name" title="${p.market_name}">${p.market_name}</td>
+      <td class="mono">${p.lots.length}</td>
+      <td class="mono">${p.avg_back}</td>
+      <td class="mono">${fmt(p.total_stake)}</td>
+      <td class="mono">${p.lay}</td>
+      <td class="mono ${pos?'pos':'neg'}">${sign(p.unrealized)}</td>
+      <td><span class="chip">auto-managed</span></td>
+    </tr>`;
+  });
+  h += "</tbody></table>";
+  w.innerHTML = h;
+}
+
+function renderMarkets(){
+  const w = $("#markets-wrap");
+  if(!state.markets.length){ w.innerHTML = `<div class="empty">Loading feed…</div>`; return; }
+  let h = `<table><thead><tr><th>Market</th><th>Prob %</th><th>Back</th><th>Lay</th>
+    <th>Signal</th><th>Signal strength</th><th>Status</th></tr></thead><tbody>`;
+  state.markets.forEach(m => {
+    const conf = m.confidence;
+    const hasPos = m.has_position;
+    let status = `<span class="chip" style="color:var(--muted)">watch</span>`;
+    if(hasPos) status = `<span class="chip tag-OPEN">in position</span>`;
+    else if(m.signal >= state.settings.entry_signal) status = `<span class="chip tag-ADD">entry signal</span>`;
+    h += `<tr>
+      <td class="name" title="${m.name}">${m.name}</td>
+      <td class="mono">${(m.prob*100).toFixed(1)}</td>
+      <td class="mono">${m.back}</td>
+      <td class="mono">${m.lay}</td>
+      <td class="mono ${m.signal>=0?'pos':'neg'}">${sign(m.signal)}</td>
+      <td><div class="bar"><i style="width:${Math.round(conf*100)}%"></i></div></td>
+      <td>${status}</td>
+    </tr>`;
+  });
+  h += "</tbody></table>";
+  w.innerHTML = h;
+}
+
+function renderTrades(){
+  const w = $("#trades-wrap");
+  if(!state.trades.length){ w.innerHTML = `<div class="empty">No trades yet.</div>`; return; }
+  let h = `<table><thead><tr><th>Time</th><th>Action</th><th>Market</th><th>Odds</th>
+    <th>Stake</th><th>P&amp;L</th><th>Balance after</th></tr></thead><tbody>`;
+  state.trades.forEach(t => {
+    const pnl = t.pnl >= 0;
+    h += `<tr>
+      <td class="mono muted">${t.ts}</td>
+      <td><span class="chip tag-${t.action}">${t.action}</span></td>
+      <td class="name" title="${t.market_name}">${t.market_name}</td>
+      <td class="mono">${t.odds}</td>
+      <td class="mono">${fmt(t.stake)}</td>
+      <td class="mono ${pnl?'pos':'neg'}">${sign(t.pnl)}</td>
+      <td class="mono">${fmt(t.balance_after)}</td>
+    </tr>`;
+  });
+  h += "</tbody></table>";
+  w.innerHTML = h;
+}
+
+function drawChart(){
+  const cv = $("#chart");
+  const dpr = window.devicePixelRatio || 1;
+  const rect = cv.getBoundingClientRect();
+  cv.width = rect.width * dpr; cv.height = rect.height * dpr;
+  const ctx = cv.getContext("2d");
+  ctx.scale(dpr,dpr);
+  const W = rect.width, H = rect.height;
+  ctx.clearRect(0,0,W,H);
+  const pts = state.equity_history;
+  if(pts.length < 2){
+    ctx.fillStyle = "#8b94a7"; ctx.font = "12px sans-serif";
+    ctx.fillText("Collecting equity data…", 16, H/2);
+    return;
+  }
+  const vals = pts.map(p=>p.equity);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const pad = (max-min) || 1;
+  const x = i => 16 + (W-32) * (i/(pts.length-1));
+  const y = v => H-16 - (H-32) * ((v-min)/pad);
+  // zero line
+  const startVal = pts[0].equity;
+  ctx.strokeStyle = "#1f2937"; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(16, y(startVal)); ctx.lineTo(W-16, y(startVal)); ctx.stroke();
+  ctx.setLineDash([]);
+  // line
+  const up = pts[pts.length-1].equity >= startVal;
+  ctx.strokeStyle = up ? "#22c55e" : "#ef4444";
+  ctx.lineWidth = 2; ctx.lineJoin="round";
+  ctx.beginPath();
+  pts.forEach((p,i)=>{ i?ctx.lineTo(x(i),y(p.equity)):ctx.moveTo(x(i),y(p.equity)); });
+  ctx.stroke();
+  // fill
+  const grd = ctx.createLinearGradient(0,16,0,H-16);
+  grd.addColorStop(0, (up?"rgba(34,197,94,0.18)":"rgba(239,68,68,0.18)"));
+  grd.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.lineTo(x(pts.length-1),H-16); ctx.lineTo(x(0),H-16); ctx.closePath();
+  ctx.fillStyle = grd; ctx.fill();
+}
+
+async function post(url, body){
+  const r = await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  return r.json();
+}
+
+function toast(msg){
+  let t = $("#toast");
+  if(!t){ t = document.createElement("div"); t.id="toast";
+    t.style.cssText="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:99;transition:.3s;opacity:0";
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = 1;
+  setTimeout(()=>t.style.opacity=0, 2200);
+}
+
+$("#btn-start").onclick = async ()=>{ await post("/api/control",{action:"start"}); };
+$("#btn-stop").onclick = async ()=>{ await post("/api/control",{action:"stop"}); };
+$("#btn-reset").onclick = async ()=>{
+  if(confirm("Reset the wallet to the starting bankroll and clear all history?")){
+    await post("/api/control",{action:"reset"});
+  }
+};
+$("#btn-deposit").onclick = async ()=>{
+  const v = parseFloat($("#deposit-amt").value||"0");
+  if(!(v>0)) return toast("Enter a positive amount");
+  const target = $("#deposit-target").value;
+  await post("/api/deposit",{amount:v, target});
+  $("#deposit-amt").value="";
+  toast("Wallet topped up (simulated)");
+};
+
+// ---- alerts -------------------------------------------------------------
+let alertConfig = null;
+
+function renderAlertsStatus(channels){
+  if(!channels) return;
+  const w = $("#alerts-status");
+  w.innerHTML = channels.map(c => {
+    const color = c.enabled ? (c.configured ? "var(--up)" : "var(--amber)") : "var(--muted)";
+    return `<span class="chip" style="color:${color};margin:0 6px 6px 0;display:inline-block">${c.channel}: ${c.enabled ? (c.configured ? 'ON' : 'ON (not configured)') : 'off'}</span>`;
+  }).join("");
+}
+
+function buildAlertsForm(){
+  const g = $("#alerts-grid");
+  g.innerHTML = "";
+  if(!alertConfig) return;
+  const order = ["log","email","telegram","webhook"];
+  order.forEach(ch => {
+    const cfg = alertConfig[ch] || {};
+    const d = document.createElement("div");
+    d.className = "field";
+    let html = `<label>${ch} <input type="checkbox" data-ch="${ch}" data-k="enabled" ${cfg.enabled?'checked':''} style="width:auto;vertical-align:middle" /></label>`;
+    const keys = Object.keys(cfg).filter(k => k !== "enabled");
+    keys.forEach(k => {
+      const type = k === "password" || k === "bot_token" ? "password" : "text";
+      const isArr = Array.isArray(cfg[k]);
+      const val = isArr ? cfg[k].join(", ") : (cfg[k]==null?"":cfg[k]);
+      html += `<label style="margin-top:6px;text-transform:none;letter-spacing:0">${k}</label>
+        <input type="${type}" data-ch="${ch}" data-k="${k}" value="${String(val).replace(/"/g,'&quot;')}" placeholder="${isArr?'comma-separated':''}" />`;
+    });
+    d.innerHTML = html;
+    g.appendChild(d);
+  });
+}
+
+async function loadAlerts(){
+  try{
+    const r = await fetch("/api/alerts");
+    const d = await r.json();
+    alertConfig = d.config;
+    renderAlertsStatus(d.status);
+    buildAlertsForm();
+    const log = d.recent;
+    $("#alerts-log").textContent = log.length ? log.slice(-30).join("\n") : "—";
+    const tg = d.telegram_commands;
+    if(tg){
+      const el = $("#tg-cmd-status");
+      if(tg.enabled && tg.configured){
+        el.innerHTML = `<span class="chip" style="color:var(--up);margin-left:6px">active (owner: ${tg.chat_ids.join(', ')})</span>`;
+      } else if(tg.enabled){
+        el.innerHTML = `<span class="chip" style="color:var(--amber);margin-left:6px">token set, waiting for first message (owner auto-register)</span>`;
+      } else {
+        el.innerHTML = `<span class="chip" style="color:var(--muted);margin-left:6px">off (set bot_token)</span>`;
+      }
+    }
+  }catch(e){}
+}
+
+async function saveAlerts(){
+  const patch = {};
+  document.querySelectorAll("#alerts-grid input[data-ch]").forEach(i => {
+    const ch = i.dataset.ch, k = i.dataset.k;
+    if(!patch[ch]) patch[ch] = {};
+    if(i.type === "checkbox"){ patch[ch][k] = i.checked; return; }
+    let v = i.value;
+    if(k === "to") v = v.split(",").map(s=>s.trim()).filter(Boolean);
+    else if(k === "port") v = parseInt(v,10)||0;
+    else if(k === "use_ssl" || k === "starttls") v = v === "true";
+    patch[ch][k] = v;
+  });
+  await post("/api/alerts/config", patch);
+  toast("Alert config saved");
+  loadAlerts();
+}
+
+$("#btn-alerts-save").onclick = saveAlerts;
+$("#btn-alerts-test").onclick = async ()=>{
+  const r = await post("/api/alerts/test",{});
+  const results = r.results || [];
+  if(!results.length) return toast("No channels enabled");
+  const msg = results.map(x => x.channel + ": " + (x.ok ? "sent ✓" : "FAILED — " + x.error)).join("  |  ");
+  toast(msg);
+  loadAlerts();
+};
+
+// ---- backtest -----------------------------------------------------------
+let btPolling = null;
+
+async function runBacktest(){
+  const runs = parseInt($("#bt-runs").value||"50",10);
+  const ticks = parseInt($("#bt-ticks").value||"500",10);
+  $("#btn-backtest").disabled = true;
+  $("#bt-status").textContent = "Starting backtest…";
+  $("#bt-result").innerHTML = "";
+  try{
+    await post("/api/backtest",{num_runs:runs, ticks});
+  }catch(e){}
+  btPolling = setInterval(pollBacktest, 1200);
+}
+
+async function pollBacktest(){
+  try{
+    const r = await fetch("/api/backtest");
+    const d = await r.json();
+    if(d.running){
+      $("#bt-status").textContent = `Running… ${d.progress}/${d.total} runs`;
+    } else if(d.done && d.summary){
+      clearInterval(btPolling); btPolling = null;
+      $("#btn-backtest").disabled = false;
+      $("#bt-status").textContent = "Backtest complete.";
+      const s = d.summary;
+      const mean = s.mean_pnl;
+      $("#bt-result").innerHTML = `
+        <div class="cards" style="gap:10px">
+          <div class="card"><div class="k">Mean P&amp;L</div><div class="v mono ${mean>=0?'pos':'neg'}">${sign(mean)}</div></div>
+          <div class="card"><div class="k">Median</div><div class="v mono">${sign(s.median_pnl)}</div></div>
+          <div class="card"><div class="k">Profitable runs</div><div class="v mono">${s.profitable_pct.toFixed(0)}%</div></div>
+          <div class="card"><div class="k">Worst drawdown</div><div class="v mono neg">-${Math.round(s.worst_drawdown).toLocaleString()}</div></div>
+        </div>
+        <div style="margin-top:10px"><a href="${s.report_url}" target="_blank">Open full report ↗</a></div>`;
+    } else if(d.error){
+      clearInterval(btPolling); btPolling = null;
+      $("#btn-backtest").disabled = false;
+      $("#bt-status").textContent = "Backtest error: " + d.error;
+    }
+  }catch(e){}
+}
+
+$("#btn-backtest").onclick = runBacktest;
+
+// ---- daily schedule -----------------------------------------------------
+async function loadSchedule(){
+  try{
+    const r = await fetch("/api/schedule");
+    const s = await r.json();
+    if(s.error) return;
+    $("#sched-enabled").checked = !!s.enabled;
+    $("#sched-hour").value = s.hour;
+    $("#sched-minute").value = s.minute;
+    $("#sched-runs").value = s.runs;
+    $("#sched-ticks").value = s.ticks;
+    let html = "";
+    if(s.enabled){
+      html = `Next run: <b>${s.next_run || '—'}</b>`;
+      if(s.last_run) html += ` &nbsp;·&nbsp; Last run: <b>${s.last_run}</b>`;
+    } else {
+      html = "Schedule is <b>disabled</b>.";
+    }
+    if(s.running) html += " &nbsp;·&nbsp; <b style='color:var(--amber)'>running…</b>";
+    if(s.last_summary){
+      const m = s.last_summary;
+      const mean = m.mean_pnl;
+      html += `<div style="margin-top:8px" class="cards" >
+        <div class="card"><div class="k">Mean P&amp;L</div><div class="v mono ${mean>=0?'pos':'neg'}" style="font-size:16px">${sign(mean)}</div></div>
+        <div class="card"><div class="k">Profitable</div><div class="v mono" style="font-size:16px">${m.profitable_pct.toFixed(0)}%</div></div>
+        <div class="card"><div class="k">Worst DD</div><div class="v mono neg" style="font-size:16px">-${Math.round(m.worst_drawdown).toLocaleString()}</div></div>
+        <div class="card" style="align-self:center"><a href="${s.report_url}" target="_blank">Open report ↗</a></div>
+      </div>`;
+    }
+    $("#sched-status").innerHTML = html;
+  }catch(e){}
+}
+
+$("#btn-sched-save").onclick = async ()=>{
+  const patch = {
+    daily_backtest_enabled: $("#sched-enabled").checked,
+    daily_backtest_hour: parseInt($("#sched-hour").value||"8",10),
+    daily_backtest_minute: parseInt($("#sched-minute").value||"0",10),
+    daily_backtest_runs: parseInt($("#sched-runs").value||"50",10),
+    daily_backtest_ticks: parseInt($("#sched-ticks").value||"600",10),
+  };
+  await post("/api/settings", patch);
+  toast("Schedule saved");
+  loadSchedule();
+};
+
+$("#btn-sched-run").onclick = async ()=>{
+  $("#sched-status").innerHTML = "Running daily backtest…";
+  const r = await post("/api/schedule/run", {});
+  if(r.error){ toast("Error: " + r.error); return; }
+  toast("Daily backtest complete");
+  loadSchedule();
+};
+
+// ---- payments ------------------------------------------------------------
+let paymentsState = null;
+
+async function loadPayments(){
+  try{
+    const r = await fetch("/api/payments");
+    const d = await r.json();
+    if(d.error) return;
+    paymentsState = d;
+    $("#pay-provider").value = d.provider;
+    $("#pay-mode").value = d.mode;
+    $("#pay-mode-hint").textContent = d.is_live ? "LIVE" : (d.provider === "off" ? "DISABLED" : "TEST MODE");
+    const banner = $("#pay-banner");
+    if(d.is_live){
+      banner.innerHTML = "🟢 <b>LIVE — connected to Paystack.</b> Deposits and withdrawals move real money. Double-check every amount before confirming.";
+    } else if(d.provider === "off"){
+      banner.innerHTML = "⛔ <b>Payments disabled.</b>";
+    } else {
+      banner.innerHTML = "⚠️ <b>TEST / simulation mode.</b> Deposits and withdrawals only touch the simulated wallet — no real money moves.";
+    }
+    // history
+    const hist = d.history || [];
+    $("#pay-history").textContent = hist.length
+      ? hist.map(h => `[${h.ts}] ${h.kind.toUpperCase()} ₦${h.amount.toLocaleString()} · ${h.ref} · ${h.extra}`).join("\n")
+      : "No activity yet.";
+    // show withdrawal settings hint
+  }catch(e){}
+}
+
+$("#btn-pay-save").onclick = async ()=>{
+  const patch = {
+    provider: $("#pay-provider").value,
+    mode: $("#pay-mode").value,
+    paystack: {
+      secret_key: $("#pay-secret").value.trim(),
+      public_key: $("#pay-public").value.trim(),
+    },
+  };
+  await post("/api/payments/config", patch);
+  $("#pay-secret").value = ""; $("#pay-public").value = "";
+  toast("Payment config saved");
+  loadPayments();
+};
+
+$("#btn-deposit").onclick = async ()=>{
+  const amount = parseFloat($("#dep-amount").value || "0");
+  const email = $("#dep-email").value.trim();
+  if(!(amount > 0)) return toast("Enter a deposit amount");
+  const r = await post("/api/payments/deposit", {amount, email});
+  if(r.error) return toast("Error: " + r.error);
+  if(r.mode === "mock"){
+    toast(`Simulated deposit of ₦${amount.toLocaleString()}`);
+    $("#dep-amount").value = "";
+  } else if(r.authorization_url){
+    toast("Opening secure checkout…");
+    window.open(r.authorization_url, "_blank");
+  }
+  loadPayments();
+};
+
+$("#btn-withdraw").onclick = async ()=>{
+  const amount = parseFloat($("#wd-amount").value || "0");
+  const account_name = $("#wd-name").value.trim();
+  const account_number = $("#wd-number").value.trim();
+  const bank_code = $("#wd-bank").value.trim();
+  if(!(amount > 0)) return toast("Enter a withdrawal amount");
+  if(!confirm(`Withdraw ₦${amount.toLocaleString()} to account ${account_number}?\n\nThis ${paymentsState && paymentsState.is_live ? 'moves REAL money' : 'is a SIMULATION'}.`)) return;
+  const r = await post("/api/payments/withdraw", {amount, account_name, account_number, bank_code});
+  if(r.error) return toast("Error: " + r.error);
+  toast(`Withdrawal ${r.status}: ₦${amount.toLocaleString()} (${r.note || ''})`);
+  $("#wd-amount").value = "";
+  loadPayments();
+};
+
+// ---- crypto wallet -------------------------------------------------------
+let cryptoState = null;
+
+async function loadCrypto(){
+  try{
+    const r = await fetch("/api/crypto");
+    const d = await r.json();
+    if(d.error) return;
+    cryptoState = d;
+    $("#crypto-provider").value = d.provider;
+    $("#crypto-mode").value = d.mode;
+    $("#crypto-asset").value = d.asset;
+    $("#crypto-rate").value = d.usd_ngn_rate;
+    $("#crypto-mode-hint").textContent = d.is_live ? "LIVE" : (d.provider === "off" ? "DISABLED" : "TEST MODE");
+    const banner = $("#crypto-banner");
+    if(d.is_live){
+      banner.innerHTML = "🟢 <b>LIVE crypto.</b> Deposits and withdrawals move real crypto. Double-check every amount and address.";
+    } else if(d.provider === "off"){
+      banner.innerHTML = "⛔ <b>Crypto payments disabled.</b>";
+    } else {
+      banner.innerHTML = "⚠️ <b>TEST / simulation mode.</b> No real crypto moves. To go live you need your own Wallet Pay store key or TON addresses.";
+    }
+    const hist = d.history || [];
+    $("#crypto-history").textContent = hist.length
+      ? hist.map(h => `[${h.ts}] ${h.kind.toUpperCase()} ₦${h.amount.toLocaleString()} · ${h.ref} · ${h.extra}`).join("\n")
+      : "No activity yet.";
+  }catch(e){}
+}
+
+$("#btn-crypto-save").onclick = async ()=>{
+  const patch = {
+    provider: $("#crypto-provider").value,
+    mode: $("#crypto-mode").value,
+    asset: $("#crypto-asset").value,
+    usd_ngn_rate: parseFloat($("#crypto-rate").value || "1500"),
+    walletpay: { store_api_key: $("#crypto-wp-key").value.trim() },
+    ton: { deposit_address: $("#crypto-dep-addr").value.trim(), hot_wallet_address: $("#crypto-hot-addr").value.trim() },
+    withdrawal: { wallet_address: $("#crypto-payout-addr").value.trim() },
+  };
+  await post("/api/crypto/config", patch);
+  $("#crypto-wp-key").value = "";
+  toast("Crypto config saved");
+  loadCrypto();
+};
+
+$("#btn-crypto-deposit").onclick = async ()=>{
+  const amount = parseFloat($("#crypto-dep-amount").value || "0");
+  if(!(amount > 0)) return toast("Enter a deposit amount");
+  const r = await post("/api/crypto/deposit", {amount});
+  if(r.error) return toast("Error: " + r.error);
+  if(r.mode === "mock"){
+    toast(`Simulated crypto deposit of ₦${amount.toLocaleString()}`);
+    $("#crypto-dep-amount").value = "";
+  } else if(r.pay_link){
+    toast("Opening Telegram payment…");
+    window.open(r.pay_link, "_blank");
+  } else if(r.address){
+    toast("Send crypto to the deposit address; the bot credits on confirmation.");
+    $("#crypto-dep-result").textContent = `Deposit address: ${r.address}`;
+  }
+  loadCrypto();
+};
+
+$("#btn-crypto-withdraw").onclick = async ()=>{
+  const amount = parseFloat($("#crypto-wd-amount").value || "0");
+  const address = $("#crypto-payout-addr").value.trim();
+  if(!(amount > 0)) return toast("Enter a withdrawal amount");
+  if(!confirm(`Withdraw ₦${amount.toLocaleString()} to ${address || 'your payout address'}?\n\nThis ${cryptoState && cryptoState.is_live ? 'moves REAL crypto' : 'is a SIMULATION'}.`)) return;
+  const r = await post("/api/crypto/withdraw", {amount, address});
+  if(r.error) return toast("Error: " + r.error);
+  toast(`Withdrawal ${r.status}: ₦${amount.toLocaleString()} (${r.note || ''})`);
+  $("#crypto-wd-amount").value = "";
+  loadCrypto();
+};
+// ---- broker / platform connections --------------------------------------
+let brokersCfg = null;
+
+function buildBrokersForm(){
+  const g = $("#brokers-grid");
+  g.innerHTML = "";
+  if(!brokersCfg) return;
+  Object.keys(brokersCfg).forEach(platform => {
+    const cfg = brokersCfg[platform] || {};
+    const d = document.createElement("div");
+    d.className = "card";
+    d.style.marginTop = "10px";
+    let html = `<div class="row" style="justify-content:space-between">
+      <div class="k" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--text);font-weight:700">${platform}</div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);text-transform:none;letter-spacing:0">
+        <input type="checkbox" data-p="${platform}" data-k="enabled" ${cfg.enabled?'checked':''} style="width:auto" /> enable
+      </label>
+    </div>`;
+    const fields = Object.keys(cfg).filter(k => k !== "enabled");
+    html += `<div class="formgrid" style="padding:8px 0 0">`;
+    fields.forEach(k => {
+      const isSecret = (k === "api_secret" || k === "api_passphrase" || k === "password");
+      const type = isSecret ? "password" : "text";
+      const val = cfg[k]==null ? "" : cfg[k];
+      const opts = (k === "mode") ? `<option value="test" ${val==='test'?'selected':''}>Test</option><option value="live" ${val==='live'?'selected':''}>Live</option>` :
+                   (k === "network") ? `<option value="testnet" ${val==='testnet'?'selected':''}>Testnet</option><option value="mainnet" ${val==='mainnet'?'selected':''}>Mainnet</option>` : null;
+      if(opts !== null){
+        html += `<div class="field"><label>${k}</label><select data-p="${platform}" data-k="${k}">${opts}</select></div>`;
+      } else {
+        html += `<div class="field"><label>${k}</label><input type="${type}" data-p="${platform}" data-k="${k}" value="${String(val).replace(/"/g,'&quot;')}" /></div>`;
+      }
+    });
+    html += `</div><div style="margin-top:8px"><button class="bt-test" data-p="${platform}" style="font-size:12px">Test connection</button></div>`;
+    d.innerHTML = html;
+    g.appendChild(d);
+  });
+  document.querySelectorAll(".bt-test").forEach(b => {
+    b.onclick = async ()=>{ testBroker(b.dataset.p); };
+  });
+}
+
+async function loadBrokers(){
+  try{
+    const r = await fetch("/api/brokers");
+    const d = await r.json();
+    if(d.error) return;
+    brokersCfg = d.config;
+    buildBrokersForm();
+    // status banner
+    const banner = $("#broker-banner");
+    if(d.auto_trade_ready){
+      banner.innerHTML = "🟢 Auto-trading wired. (This will only ever be true after a real adapter is built.)";
+    } else {
+      banner.innerHTML = "⚠️ <b>Connectivity only.</b> Store credentials and <b>verify</b> the connection (read-only). Auto-trading is <b>not wired</b>. Nigerian bookmakers have <b>no API</b> and cannot be linked.";
+    }
+  }catch(e){}
+}
+
+async function testBroker(platform){
+  const r = await post("/api/brokers/test", {platform});
+  const box = $("#broker-results");
+  const line = `[${platform}] ${r.status}: ${r.detail || ''}`;
+  box.textContent = (box.textContent === "—" ? "" : box.textContent + "\n") + line;
+}
+
+async function loadLivePositions(){
+  try{
+    const r = await fetch("/api/brokers/live");
+    const d = await r.json();
+    const w = $("#live-positions-wrap");
+    const pos = d.positions || [];
+    let h = `<div class="k" style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.03em;margin:6px 0 6px">Live broker positions (Binance testnet)</div>`;
+    if(!pos.length){
+      h += `<div class="empty" style="padding:12px">No live broker positions. Approve a positive-EV proposal (with Binance wired) to open one.</div>`;
+    } else {
+      h += `<table><thead><tr><th>Symbol</th><th>Net (quote)</th><th>Network</th><th>Entries</th><th>Action</th></tr></thead><tbody>`;
+      pos.forEach(p => {
+        h += `<tr><td class="mono">${p.symbol}</td><td class="mono">${p.net_quote}</td>
+          <td class="mono">${p.network}</td>
+          <td class="muted">${p.entries.map(e => e.ts+' · '+e.qty).join('<br>')}</td>
+          <td><button class="danger" style="font-size:12px;padding:4px 10px" onclick="closeLive('${p.symbol}')">Close (SELL)</button></td></tr>`;
+      });
+      h += `</tbody></table>`;
+    }
+    w.innerHTML = h;
+  }catch(e){}
+}
+
+async function closeLive(symbol){
+  if(!confirm(`Close ${symbol} position (SELL market order)?`)) return;
+  const r = await post("/api/brokers/close", {symbol});
+  if(r.error) return toast("Error: " + r.error);
+  toast(r.ok ? `Closed ${r.symbol} on ${r.network}` : "Close failed");
+  loadLivePositions();
+}
+
+async function loadSports(){
+  const src = $("#sports-src").value;
+  const query = $("#sports-query").value || "football";
+  const w = $("#sports-wrap");
+  w.innerHTML = `<div class="empty" style="padding:14px">Loading ${src} markets…</div>`;
+  let r;
+  if(src === "polymarket"){
+    r = await post("/api/sports/markets", {platform:"polymarket", limit:15});
+    if(r.count === undefined && r.error){ w.innerHTML = `<div class="empty" style="padding:14px">${r.error}</div>`; return; }
+    const mkts = r.markets || [];
+    let h = `<table><thead><tr><th>Question</th><th>Outcomes</th><th>Volume</th><th>Active</th></tr></thead><tbody>`;
+    mkts.forEach(m => {
+      h += `<tr><td class="name" title="${m.question}" style="max-width:none">${m.question}</td>
+        <td class="muted">${m.outcomes}</td><td class="mono">${m.volume ?? '—'}</td>
+        <td class="mono">${m.active ? 'yes' : 'no'}</td></tr>`;
+    });
+    w.innerHTML = h + `</tbody></table>`;
+  } else {
+    r = await post("/api/sports/markets", {platform:"betfair", query, max:15});
+    if(r.error || (r.count === 0 && r.error)){ w.innerHTML = `<div class="empty" style="padding:14px">${r.error || 'No markets (needs Betfair login + app key)'}</div>`; return; }
+    const mkts = r.markets || [];
+    let h = `<table><thead><tr><th>Event</th><th>Market</th><th>Runners</th></tr></thead><tbody>`;
+    mkts.forEach(m => {
+      h += `<tr><td class="name">${m.event || ''}</td><td class="name" style="max-width:none">${m.name || ''}</td>
+        <td class="muted">${(m.runners||[]).map(r=>r[0]).join(', ')}</td></tr>`;
+    });
+    w.innerHTML = h + `</tbody></table>`;
+  }
+}
+
+$("#btn-sports-load").onclick = loadSports;
+
+$("#btn-brokers-save").onclick = async ()=>{
+  const patch = {};
+  document.querySelectorAll("#brokers-grid [data-p]").forEach(i => {
+    const p = i.dataset.p, k = i.dataset.k;
+    if(!patch[p]) patch[p] = {};
+    if(i.type === "checkbox"){ patch[p][k] = i.checked; return; }
+    patch[p][k] = i.value.trim();
+  });
+  await post("/api/brokers/config", patch);
+  toast("Connections saved");
+  loadBrokers();
+};
+
+// ---- decision desk -------------------------------------------------------
+function renderDecisions(){
+  const w = $("#decisions-wrap");
+  if(!state) return;
+  const props = state.proposals || [];
+  const decs = state.decisions || [];
+
+  let h = "";
+  // pending proposals
+  const pending = props.filter(p => p.status === "pending");
+  h += `<div class="k" style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.03em;margin:6px 0 8px">Awaiting your decision (${pending.length})</div>`;
+  if(!pending.length){
+    h += `<div class="empty" style="padding:14px">No pending proposals — the bot will surface an opportunity when momentum crosses the entry signal.</div>`;
+  } else {
+    h += `<table><thead><tr><th>Market</th><th>Side</th><th>Odds</th><th>Prob</th><th>Confidence</th><th>Exp. value</th><th>Stake</th><th>Decide</th></tr></thead><tbody>`;
+    pending.forEach(p => {
+      const evGood = p.ev > 0;
+      h += `<tr>
+        <td class="name" title="${p.market_name}">${p.market_name}</td>
+        <td class="mono">${p.side}</td>
+        <td class="mono">${p.odds}</td>
+        <td class="mono">${(p.prob*100).toFixed(1)}%</td>
+        <td><div class="bar"><i style="width:${Math.round(p.confidence*100)}%"></i></div></td>
+        <td class="mono ${evGood?'pos':'neg'}">${sign(p.ev)} (${sign(p.ev_pct)}%)</td>
+        <td class="mono">${fmt(p.stake)}</td>
+        <td><button class="primary" style="font-size:12px;padding:4px 10px" onclick="decide(${p.id},'approve')">Approve</button>
+            <button style="font-size:12px;padding:4px 10px" onclick="decide(${p.id},'reject')">Reject</button></td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  }
+
+  // recent decisions
+  h += `<div class="k" style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.03em;margin:14px 0 8px">Recent decisions</div>`;
+  if(!decs.length){
+    h += `<div class="empty" style="padding:14px">No decisions yet.</div>`;
+  } else {
+    h += `<table><thead><tr><th>Time</th><th>Action</th><th>Market</th><th>Stake</th><th>Exp. value</th><th>Detail</th></tr></thead><tbody>`;
+    decs.forEach(d => {
+      h += `<tr>
+        <td class="mono muted">${d.ts}</td>
+        <td><span class="chip tag-${d.action==='approved'?'ADD':(d.action==='executed'?'OPEN':(d.action==='rejected'?'EXIT':'SETTLE'))}">${d.action}</span></td>
+        <td class="name" title="${d.market}">${d.market}</td>
+        <td class="mono">${fmt(d.stake)}</td>
+        <td class="mono ${d.ev>=0?'pos':'neg'}">${sign(d.ev)}</td>
+        <td class="muted">${d.detail || ''}</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  }
+  w.innerHTML = h;
+}
+
+async function decide(id, action){
+  const r = await post(`/api/decisions/${action}`, {id});
+  if(r && r.error) return toast("Error: " + r.error);
+  toast(action === "approve" ? "Approved — executing if favorable & wired" : "Rejected");
+  refresh();
+}
+
+$("#btn-setbal").onclick = async ()=>{
+  const v = parseFloat($("#startbal").value||"0");
+  if(!(v>0)) return toast("Enter a positive amount");
+  await post("/api/settings",{starting_balance:v});
+  await post("/api/control",{action:"reset"});
+  toast("Starting bankroll set");
+};
+
+// ---- trade capital -------------------------------------------------------
+$("#btn-set-capital").onclick = async ()=>{
+  const v = parseFloat($("#trade-capital").value||"0");
+  if(v < 0) return toast("Enter a non-negative amount");
+  await post("/api/settings",{trade_capital:v});
+  toast(v > 0 ? `Trade capital set to ₦${v.toLocaleString()}` : "Trade capital set to full balance");
+  refresh();
+};
+
+$("#btn-capital-full").onclick = async ()=>{
+  $("#trade-capital").value = "";
+  await post("/api/settings",{trade_capital:0});
+  toast("Trade capital set to full balance");
+  refresh();
+};
+
+buildSettings();
+loadAlerts();
+refresh();
+loadSchedule();
+loadPayments();
+loadCrypto();
+loadBrokers();
+loadLivePositions();
+setInterval(refresh, 1000);
+setInterval(loadAlerts, 10000);
+setInterval(loadSchedule, 30000);
+setInterval(loadPayments, 10000);
+setInterval(loadCrypto, 15000);
+setInterval(loadBrokers, 20000);
+setInterval(loadLivePositions, 10000);
+</script>
+</body>
+</html>

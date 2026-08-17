@@ -1,0 +1,16 @@
+{
+  "provider": "mock",
+  "mode": "test",
+  "paystack": {
+    "secret_key": "",
+    "public_key": ""
+  },
+  "withdrawal": {
+    "account_name": "YOUR NAME",
+    "account_number": "0123456789",
+    "bank_code": "058",
+    "min_withdrawal": 500,
+    "daily_withdrawal_limit": 50000,
+    "auto_withdraw": false
+  }
+}

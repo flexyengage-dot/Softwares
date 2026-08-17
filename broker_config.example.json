@@ -1,0 +1,8 @@
+{
+  "binance": { "enabled": false, "mode": "test", "network": "testnet", "api_key": "", "api_secret": "" },
+  "bybit":   { "enabled": false, "mode": "test", "network": "testnet", "api_key": "", "api_secret": "" },
+  "okx":     { "enabled": false, "mode": "test", "network": "testnet", "api_key": "", "api_secret": "", "api_passphrase": "" },
+  "betfair": { "enabled": false, "mode": "test", "app_key": "", "username": "", "password": "" },
+  "metatrader": { "enabled": false, "mode": "test", "account": "", "password": "", "server": "" },
+  "custom_webhook": { "enabled": false, "url": "" }
+}
