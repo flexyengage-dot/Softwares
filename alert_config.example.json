@@ -1,0 +1,26 @@
+{
+  "log": { "enabled": true, "file": "data/alerts.log" },
+
+  "email": {
+    "enabled": false,
+    "host": "smtp.gmail.com",
+    "port": 587,
+    "use_ssl": false,
+    "starttls": true,
+    "username": "you@gmail.com",
+    "password": "YOUR_APP_PASSWORD",
+    "from": "you@gmail.com",
+    "to": ["you@gmail.com"]
+  },
+
+  "telegram": {
+    "enabled": false,
+    "bot_token": "123456:ABC-your-token-from-BotFather",
+    "chat_id": "123456789"
+  },
+
+  "webhook": {
+    "enabled": false,
+    "url": "https://hooks.example.com/your-webhook"
+  }
+}
